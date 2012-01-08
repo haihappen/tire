@@ -100,6 +100,13 @@ module Tire
           end
         end
 
+        should "properly translate namespaced model into document_type" do
+          # Watch out for <https://github.com/rails/rails/blob/v3.1.3/activemodel/lib/active_model/naming.rb#L50-52>
+          t = MyNamespace::ModelInNamespace.document_type
+          assert_equal 'my_namespace/model_in_namespace', t
+          assert defined?(t), "Cannot infer class from document type: #{t}"
+        end
+
         should "allow to refresh index" do
           Index.any_instance.expects(:refresh)
 
@@ -566,7 +573,7 @@ module Tire
 
             class ::ModelWithMapping
               extend  ActiveModel::Naming
-              extend ActiveModel::Callbacks
+              extend  ActiveModel::Callbacks
               include ActiveModel::Serialization
               include Tire::Model::Search
               include Tire::Model::Callbacks
@@ -595,8 +602,8 @@ module Tire
           
           should "serialize mapped properties when mapping procs are set" do
             class ::ModelWithMappingProcs
-              extend ActiveModel::Naming
-              extend ActiveModel::Callbacks
+              extend  ActiveModel::Naming
+              extend  ActiveModel::Callbacks
               include ActiveModel::Serialization
               include Tire::Model::Search
               include Tire::Model::Callbacks
@@ -604,7 +611,7 @@ module Tire
               mapping do
                 indexes :one,   :type => 'string', :analyzer => 'keyword'
                 indexes :two,   :type => 'string', :analyzer => 'keyword', :as => proc { one * 2 }
-                indexes :three, :type => 'string', :analyzer => 'keyword', :as => 'one * 3'
+                indexes :three, :type => 'string', :analyzer => 'keyword', :as => 'one + 2'
               end
 
               attr_reader :attributes
@@ -616,11 +623,17 @@ module Tire
               end
             end
 
-            model = ::ModelWithMappingProcs.new :one => 1, :two => 1, :three => 1
-            assert_equal( {:one => 1, :three => 1, :two => 1}, model.serializable_hash )
+            model    = ::ModelWithMappingProcs.new :one => 1, :two => 1, :three => 1
+            hash     = model.serializable_hash
+            document = MultiJson.decode(model.to_indexed_json)
 
-            assert_equal( {:one => 1, :three => 3, :two => 2}.to_json, model.to_indexed_json )
-            
+            assert_equal 1, hash[:one]
+            assert_equal 1, hash[:two]
+            assert_equal 1, hash[:three]
+
+            assert_equal 1, document['one']
+            assert_equal 2, document['two']
+            assert_equal 3, document['three']
           end
 
         end
