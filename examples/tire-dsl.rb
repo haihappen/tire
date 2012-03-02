@@ -1,3 +1,5 @@
+# encoding: UTF-8
+#
 # **Tire** provides rich and comfortable Ruby API for the
 # [_ElasticSearch_](http://www.elasticsearch.org/) search engine/database.
 #
@@ -474,6 +476,7 @@ end
 # Eventually, _Tire_ will support all of them. So far, only these are supported:
 #
 # * [string](http://www.elasticsearch.org/guide/reference/query-dsl/query-string-query.html)
+# * [text](http://www.elasticsearch.org/guide/reference/query-dsl/text-query.html)
 # * [term](http://elasticsearch.org/guide/reference/query-dsl/term-query.html)
 # * [terms](http://elasticsearch.org/guide/reference/query-dsl/terms-query.html)
 # * [bool](http://www.elasticsearch.org/guide/reference/query-dsl/bool-query.html)
@@ -532,11 +535,11 @@ s = Tire.search 'articles' do
   #
   query { string 'title:T*' }
 
-  facet 'global-tags' do
+  facet 'global-tags', :global => true do
 
     # ...but set the `global` scope for the facet in this case.
     #
-    terms :tags, :global => true
+    terms :tags
   end
 
   # We can even _combine_ facets scoped to the current query
@@ -583,6 +586,8 @@ end
 # * [date](http://www.elasticsearch.org/guide/reference/api/search/facets/date-histogram-facet.html)
 # * [range](http://www.elasticsearch.org/guide/reference/api/search/facets/range-facet.html)
 # * [histogram](http://www.elasticsearch.org/guide/reference/api/search/facets/histogram-facet.html)
+# * [statistical](http://www.elasticsearch.org/guide/reference/api/search/facets/statistical-facet.html)
+# * [terms_stats](http://www.elasticsearch.org/guide/reference/api/search/facets/terms-stats-facet.html)
 # * [query](http://www.elasticsearch.org/guide/reference/api/search/facets/query-facet.html)
 
 # We have seen that _ElasticSearch_ facets enable us to fetch complex aggregations from our data.
